@@ -1,0 +1,11 @@
+##Auto Configuration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.chat.core.commons.utils.SpringHelpers,\
+com.chat.core.commons.filter.FeignFilter,\
+com.chat.core.commons.filter.HeaderFilter,\
+com.chat.core.commons.advice.ResponseBodyAdvice,\
+com.chat.core.commons.advice.ExceptionAdvice,\
+com.chat.core.log.aop.LogForAdaptorPointcutAdvisor,\
+com.chat.core.log.aop.LogForMethodPointcutAdvisor
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.chat.core.log.config.LoggingEnvironmentPostProcessor

@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: brainwave
+  profiles:
+    active: ${PROFILES_ACTIVE:dev}
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+#    active: @profiles.active@
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      #等待来自池的连接的最大毫秒数。如果在没有可用连接的情况下超过此时间，则会抛出SQLException。
+      connectionTimeout: 30000
+      #池允许达到的最大大小，包括空闲和正在使用的连接。
+      maximumPoolSize: 100
+      #池中维护的最小空闲连接数。
+      minimum-idle: 10
+      auto-commit: true
+      #ms 60000ms=60s 允许连接在池中闲置的最长时间。 此设置仅适用于minimumIdle定义为小于maximumPoolSize。
+      idle-timeout: 60000
+      pool-name: BaseHikariCP
+      #ms此属性控制池中连接的最大生存期。使用中的连接永远不会停止使用，只有在关闭连接后才将其删除。 默认值：1800000（30分钟）
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+  jackson:
+    serialization:
+      fail_on_empty_beans: false
+  # 配置文件上传大小限制
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+server:
+  port: 12123
+
+#开启全部
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  metrics:
+    distribution:
+      percentiles-histogram[http.server.requests]: true
+    tags:
+      application: ${spring.application.name}
+logging:
+  level:
+    root: info
+forest:
+  backend: okhttp3
+  ssl-protocol: TLS
+  max-connections: 1000        # 连接池最大连接数（默认为 500）
+  timeout: 30000                # [已不推荐使用] 请求超时时间，单位为毫秒（默认为 3000）
+  connect-timeout: 30000        # 连接超时时间，单位为毫秒（默认为 timeout）
+  read-timeout: 30000          # 数据读取超时时间，单位为毫秒（默认为 timeout）
+

@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name"/>
+    <contextName>logback</contextName>
+    <property name="LOG_PATTERN"
+              value="[traceId:%X{X-MAP-TraceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } [%t] [%-40.40logger{39}] %m%n"/>
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%highlight(traceId:%clr(%X{X-MAP-TraceId:-N/A})) ${CONSOLE_LOG_PATTERN:-%yellow(%date{yyyy-MM-dd HH:mm:ss.SSS}) %clr(${LOG_LEVEL_PATTERN:-%5p}) %cyan([%t]){faint} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="LOG_PATH" value="/data/logs/${APP_NAME}"/>
+
+
+    <!-- 彩色日志依赖的渲染类 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <!--输出到控制台-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--FILE-->
+    <appender name="FILE-INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+<!--        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">-->
+<!--            <pattern>${LOG_PATTERN}</pattern>-->
+<!--            <charset>UTF-8</charset>-->
+<!--        </encoder>-->
+        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <!-- add traceId field -->
+                <!--                <provider class="com.chat.core.log.logstash.provider.TraceIdProvider">-->
+                <!--                </provider>-->
+                <pattern>
+                    <pattern>
+                        {
+                        <!--服务名称-->
+                        "appName": "${APP_NAME}",
+                        <!--traceId-->
+                        "traceId": "%X{X-MAP-TraceId:-N/A}",
+                        <!--打印时间-->
+                        "time": "%date{yyyy-MM-dd HH:mm:ss.SSS}",
+                        <!--日志级别-->
+                        "level": "%level",
+                        <!--进程ID-->
+                        "pid": "${PID:-}",
+                        <!--线程名-->
+                        "thread": "%thread",
+                        <!--全限定类名-->
+                        "class": "%logger",
+                        <!--类中的哪个方法-->
+                        "method": "%method",
+                        <!--类中的第几行-->
+                        "line": "%line",
+                        <!--日志打印的信息-->
+                        "message": "%message",
+                        <!--堆栈异常信息-->
+                        "stackTrace":"%ex"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}-info.%i.log</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文档保留天数-->
+            <maxHistory>30</maxHistory>
+            <!--日志文件总量-->
+            <totalSizeCap>50GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="FILE-DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <!-- add traceId field -->
+                <!--                <provider class="com.chat.core.log.logstash.provider.TraceIdProvider">-->
+                <!--                </provider>-->
+                <pattern>
+                    <pattern>
+                        {
+                        <!--服务名称-->
+                        "appName": "${APP_NAME}",
+                        <!--traceId-->
+                        "traceId": "%X{X-MAP-TraceId:-N/A}",
+                        <!--打印时间-->
+                        "time": "%date{yyyy-MM-dd HH:mm:ss.SSS}",
+                        <!--日志级别-->
+                        "level": "%level",
+                        <!--进程ID-->
+                        "pid": "${PID:-}",
+                        <!--线程名-->
+                        "thread": "%thread",
+                        <!--全限定类名-->
+                        "class": "%logger",
+                        <!--类中的哪个方法-->
+                        "method": "%method",
+                        <!--类中的第几行-->
+                        "line": "%line",
+                        <!--日志打印的信息-->
+                        "message": "%message",
+                        <!--堆栈异常信息-->
+                        "stackTrace":"%ex"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}-debug.%i.log</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文档保留天数-->
+            <maxHistory>30</maxHistory>
+            <!--日志文件总量-->
+            <totalSizeCap>50GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="FILE-WARN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <!-- add traceId field -->
+                <!--                <provider class="com.chat.core.log.logstash.provider.TraceIdProvider">-->
+                <!--                </provider>-->
+                <pattern>
+                    <pattern>
+                        {
+                        <!--服务名称-->
+                        "appName": "${APP_NAME}",
+                        <!--traceId-->
+                        "traceId": "%X{X-MAP-TraceId:-N/A}",
+                        <!--打印时间-->
+                        "time": "%date{yyyy-MM-dd HH:mm:ss.SSS}",
+                        <!--日志级别-->
+                        "level": "%level",
+                        <!--进程ID-->
+                        "pid": "${PID:-}",
+                        <!--线程名-->
+                        "thread": "%thread",
+                        <!--全限定类名-->
+                        "class": "%logger",
+                        <!--类中的哪个方法-->
+                        "method": "%method",
+                        <!--类中的第几行-->
+                        "line": "%line",
+                        <!--日志打印的信息-->
+                        "message": "%message",
+                        <!--堆栈异常信息-->
+                        "stackTrace":"%ex"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}-warn.%i.log</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文档保留天数-->
+            <maxHistory>30</maxHistory>
+            <!--日志文件总量-->
+            <totalSizeCap>50GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+    <!--FILE ERROR-->
+    <appender name="FILE-ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <!-- add traceId field -->
+                <!--                <provider class="com.chat.core.log.logstash.provider.TraceIdProvider">-->
+                <!--                </provider>-->
+                <pattern>
+                    <pattern>
+                        {
+                        <!--服务名称-->
+                        "appName": "${APP_NAME}",
+                        <!--traceId-->
+                        "traceId": "%X{X-MAP-TraceId:-N/A}",
+                        <!--打印时间-->
+                        "time": "%date{yyyy-MM-dd HH:mm:ss.SSS}",
+                        <!--日志级别-->
+                        "level": "%level",
+                        <!--进程ID-->
+                        "pid": "${PID:-}",
+                        <!--线程名-->
+                        "thread": "%thread",
+                        <!--全限定类名-->
+                        "class": "%logger",
+                        <!--类中的哪个方法-->
+                        "method": "%method",
+                        <!--类中的第几行-->
+                        "line": "%line",
+                        <!--日志打印的信息-->
+                        "message": "%message",
+                        <!--堆栈异常信息-->
+                        "stackTrace":"%ex"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}-error.%i.log</FileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文档保留天数-->
+            <maxHistory>30</maxHistory>
+            <!--日志文件总量-->
+            <totalSizeCap>50GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="FILE-ALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <!-- add traceId field -->
+                <!--                <provider class="com.chat.core.log.logstash.provider.TraceIdProvider">-->
+                <!--                </provider>-->
+                <pattern>
+                    <pattern>
+                        {
+                        <!--服务名称-->
+                        "appName": "${APP_NAME}",
+                        <!--traceId-->
+                        "traceId": "%X{X-MAP-TraceId:-N/A}",
+                        <!--打印时间-->
+                        "time": "%date{yyyy-MM-dd HH:mm:ss.SSS}",
+                        <!--日志级别-->
+                        "level": "%level",
+                        <!--进程ID-->
+                        "pid": "${PID:-}",
+                        <!--线程名-->
+                        "thread": "%thread",
+                        <!--全限定类名-->
+                        "class": "%logger",
+                        <!--类中的哪个方法-->
+                        "method": "%method",
+                        <!--类中的第几行-->
+                        "line": "%line",
+                        <!--日志打印的信息-->
+                        "message": "%message",
+                        <!--堆栈异常信息-->
+                        "stackTrace":"%ex"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-%d{yyyy-MM-dd}-all.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文档保留天数-->
+            <maxHistory>30</maxHistory>
+            <!--日志文件总量-->
+            <totalSizeCap>50GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <!-- <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_PATH}/error-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+        </rollingPolicy> -->
+    </appender>
+
+    <logger name="dao" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="org.mybatis" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+
+    <appender name="ASYNC-INFO" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE-INFO"/>
+    </appender>
+    <appender name="ASYNC-ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志.默认的,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE-ERROR"/>
+    </appender>
+    <appender name="ASYNC-WARN" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE-WARN"/>
+    </appender>
+    <appender name="ASYNC-ALL" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE-ALL"/>
+    </appender>
+    <appender name="ASYNC-DEBUG" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE-DEBUG"/>
+    </appender>
+    <appender name="ASYNC-STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT"/>
+    </appender>
+
+
+    <root level="info">
+        <appender-ref ref="ASYNC-STDOUT"/>
+        <appender-ref ref="ASYNC-INFO"/>
+        <appender-ref ref="ASYNC-ERROR"/>
+        <appender-ref ref="ASYNC-WARN"/>
+        <appender-ref ref="ASYNC-ALL"/>
+    </root>
+
+    <root level="debug">
+        <appender-ref ref="ASYNC-STDOUT"/>
+        <appender-ref ref="ASYNC-INFO"/>
+        <appender-ref ref="ASYNC-ERROR"/>
+        <appender-ref ref="ASYNC-WARN"/>
+        <appender-ref ref="ASYNC-ALL"/>
+        <appender-ref ref="ASYNC-DEBUG"/>
+    </root>
+
+    <root level="error">
+        <appender-ref ref="ASYNC-STDOUT"/>
+        <appender-ref ref="ASYNC-INFO"/>
+        <appender-ref ref="ASYNC-ERROR"/>
+        <appender-ref ref="ASYNC-WARN"/>
+        <appender-ref ref="ASYNC-DEBUG"/>
+        <appender-ref ref="ASYNC-ALL"/>
+    </root>
+
+</configuration>
